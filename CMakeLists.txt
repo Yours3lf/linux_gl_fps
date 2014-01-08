@@ -13,9 +13,9 @@ set( use_32_bit false )
 
 #32 bits
 if( use_32_bit )
-	set(CMAKE_CXX_FLAGS "-m32")
-	set(CMAKE_C_FLAGS "-m32")
-	set(CMAKE_SHARED_LINKER_FLAGS "-m32")
+  set(CMAKE_CXX_FLAGS "-m32")
+  set(CMAKE_C_FLAGS "-m32")
+  set(CMAKE_SHARED_LINKER_FLAGS "-m32")
 endif()
 
 if(UNIX)
@@ -46,23 +46,6 @@ include_directories(${CMAKE_SOURCE_DIR}/external/include/)
 link_directories(${CMAKE_SOURCE_DIR}/external/lib/)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
-
-if(UNIX)
-	include_directories(
-	/usr/include/gtk-2.0
-	/usr/lib/x86_64-linux-gnu/gtk-2.0/include
-	/usr/include/atk-1.0
-	/usr/include/cairo
-	/usr/include/gdk-pixbuf-2.0
-	/usr/include/pango-1.0
-	/usr/include/gio-unix-2.0/
-	/usr/include/glib-2.0
-	/usr/lib/x86_64-linux-gnu/glib-2.0/include
-	/usr/include/pixman-1
-	/usr/include/freetype2
-	/usr/include/libpng12
-	)
-endif()
 
 if(UNIX)
 	set(${project_name}_external_libs sfml-system GL GLEW freetype)
