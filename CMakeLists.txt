@@ -9,6 +9,15 @@ project(${project_name})
 #so that it talks to us
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
+set( use_32_bit false )
+
+#32 bits
+if( use_32_bit )
+	set(CMAKE_CXX_FLAGS "-m32")
+	set(CMAKE_C_FLAGS "-m32")
+	set(CMAKE_SHARED_LINKER_FLAGS "-m32")
+endif()
+
 if(UNIX)
 	add_definitions( "-Wall -Wno-long-long -ansi -pedantic -std=c++0x" )
 endif()
@@ -21,6 +30,12 @@ endif()
 if(${CMAKE_BUILD_TYPE} STREQUAL Release)
   add_definitions("-DRelease")
   message("Release mode")
+endif()
+
+#32 bits
+if( use_32_bit )
+	link_directories(/usr/lib/i386-linux-gnu)
+	link_directories(/lib/i386-linux-gnu)
 endif()
 
 #header files source
