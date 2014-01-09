@@ -28,10 +28,12 @@ using namespace std;
 using namespace mymath;
 
 typedef void( *swap_func )( Display*, GLXDrawable );
+typedef void( *sdl_swap_func )( void );
 
 LINUX_GL_FPS_API void init( void ) __attribute__( ( constructor ) );
 
-static void ( *old_glXSwapBuffers )( Display* display, GLXDrawable drawable );
+static void ( *old_glXSwapBuffers )( Display* display, GLXDrawable drawable ) = 0;
+static void ( *old_SDL_GL_SwapBuffers )( void ) = 0;
 
 void compile_shader( const char* text, const GLuint& program, const GLenum& type );
 void link_shader( const GLuint& shader_program );
@@ -54,8 +56,14 @@ string homepath = "";
 LINUX_GL_FPS_API void init( void )
 {
   old_glXSwapBuffers = ( swap_func )dlsym( RTLD_NEXT, "glXSwapBuffers" );
+  old_SDL_GL_SwapBuffers = ( sdl_swap_func )dlsym( RTLD_NEXT, "SDL_GL_SwapBuffers" );
 
-  cerr << " -- linux_gl_fps: functions registered" << endl;
+  if( !old_glXSwapBuffers )
+    cerr << " -- linux_gl_fps: couldn't get glXSwapBuffers func" << endl;
+
+  if( !old_SDL_GL_SwapBuffers )
+    cerr << " -- linux_gl_fps: couldn't get SDL_GL_SwapBuffers func" << endl;
+
   homepath = string( getenv( "HOME" ) ) + "/";
   cerr << " -- linux_gl_fps: home at --> " << homepath << endl;
 }
@@ -67,8 +75,26 @@ void get_screen_size()
   screen = uvec2( viewport[2], viewport[3] );
 }
 
-LINUX_GL_FPS_API void glXSwapBuffers( Display* display, GLXDrawable drawable )
+void display_fps()
 {
+  /*if( !old_glXSwapBuffers )
+  {
+    void* libhandle = dlopen( "libGL.so", RTLD_LAZY );
+
+    if( libhandle )
+    {
+      old_glXSwapBuffers = ( swap_func )dlsym( libhandle, "glXSwapBuffers" );
+
+      char* error = dlerror();
+
+      if( error )
+        cerr << " -- linux_gl_fps: " << error << endl;
+    }
+    else cerr << " -- linux_gl_fps: error loading libGL.so" << endl;
+
+    cerr << " -- linux_gl_fps: functions registered" << endl;
+  }*/
+
   //glXGetFBConfigAttrib();
   //load shader if not loaded yet
   if( !font::get().get_shader() && glXGetCurrentContext() )
@@ -88,7 +114,7 @@ LINUX_GL_FPS_API void glXSwapBuffers( Display* display, GLXDrawable drawable )
     get_screen_size();
     font::get().resize( screen );
 
-    cerr << " -- linux_gl_fps: screen size: " << screen << endl;
+    cerr << " -- linux_gl_fps: screen size: " << screen;
 
     font::get().load_font( homepath + ".linux_gl_fps/resources/font.ttf", instance, size );
 
@@ -119,8 +145,22 @@ LINUX_GL_FPS_API void glXSwapBuffers( Display* display, GLXDrawable drawable )
     font::get().add_to_text( instance, fpstext.c_str() );
     font::get().render( instance, vec3( 1 ), uvec2( 10 ) );
   }
+}
 
-  ( *old_glXSwapBuffers )( display, drawable ); //call original function
+LINUX_GL_FPS_API void SDL_GL_SwapBuffers( void )
+{
+  display_fps();
+
+  if( old_SDL_GL_SwapBuffers )
+    ( *old_SDL_GL_SwapBuffers )();
+}
+
+LINUX_GL_FPS_API void glXSwapBuffers( Display* display, GLXDrawable drawable )
+{
+  display_fps();
+
+  if( old_glXSwapBuffers )
+    ( *old_glXSwapBuffers )( display, drawable ); //call original function
 }
 
 void compile_shader( const char* text, const GLuint& program, const GLenum& type )
@@ -186,4 +226,3 @@ void load_shader( GLuint& program, const GLenum& type, const string& filename )
   compile_shader( str.c_str(), program, type );
   link_shader( program );
 }
-

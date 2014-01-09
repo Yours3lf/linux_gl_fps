@@ -43,12 +43,16 @@ include_directories(${CMAKE_SOURCE_DIR})
 link_directories(${CMAKE_SOURCE_DIR})
 
 include_directories(${CMAKE_SOURCE_DIR}/external/include/)
-link_directories(${CMAKE_SOURCE_DIR}/external/lib/)
+if( use_32_bit )
+	link_directories(${CMAKE_SOURCE_DIR}/external/lib/32bit)
+else()
+	link_directories(${CMAKE_SOURCE_DIR}/external/lib/64bit)
+endif()
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(UNIX)
-	set(${project_name}_external_libs sfml-system GL GLEW freetype)
+	set(${project_name}_external_libs GLEW sfml-system GL freetype)
 endif()
 	
 #adding the project's exe
