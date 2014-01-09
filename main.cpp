@@ -149,12 +149,13 @@ void display_fps()
     get_screen_size();
     font::get().resize( screen );
 
+    //cube2 sauerbraten fix
+    GLuint program_bound = 0;
+    glGetIntegerv( GL_CURRENT_PROGRAM, ( GLint* )&program_bound );
+
+    //fix for some games like world of goo
     glPushClientAttrib( GL_CLIENT_ALL_ATTRIB_BITS );
     glPushAttrib( GL_ALL_ATTRIB_BITS );
-
-    bool blend_enabled = glIsEnabled( GL_BLEND );
-    bool cull_enabled = glIsEnabled( GL_CULL_FACE );
-    bool depth_enabled = glIsEnabled( GL_DEPTH_TEST );
 
     glEnable( GL_BLEND );
     glDisable( GL_CULL_FACE );
@@ -165,18 +166,10 @@ void display_fps()
     font::get().add_to_text( instance, fpstext.c_str() );
     font::get().render( instance, vec3( 1 ), uvec2( 10 ) );
 
-    //world of goo fix: they don't maintain the blending
-    if( !blend_enabled )
-      glDisable( GL_BLEND );
-
-    if( cull_enabled )
-      glEnable( GL_CULL_FACE );
-
-    if( depth_enabled )
-      glEnable( GL_DEPTH_TEST );
-
     glPopAttrib();
     glPopClientAttrib();
+
+    glUseProgram( program_bound );
   }
 }
 
