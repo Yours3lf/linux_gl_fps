@@ -106,6 +106,9 @@ void display_fps()
       cerr << " -- linux_gl_fps: Error initializing GLEW: " << glewGetErrorString( glew_error ) << endl;
     }
 
+    glPushClientAttrib( GL_CLIENT_ALL_ATTRIB_BITS );
+    glPushAttrib( GL_ALL_ATTRIB_BITS );
+
     load_shader( font::get().get_shader(), GL_VERTEX_SHADER, homepath + ".linux_gl_fps/shaders/font/font.vs" );
     load_shader( font::get().get_shader(), GL_FRAGMENT_SHADER, homepath + ".linux_gl_fps/shaders/font/font.ps" );
 
@@ -117,6 +120,9 @@ void display_fps()
     cerr << " -- linux_gl_fps: screen size: " << screen;
 
     font::get().load_font( homepath + ".linux_gl_fps/resources/font.ttf", instance, size );
+
+    glPopAttrib();
+    glPopClientAttrib();
 
     cerr << " -- linux_gl_fps: font initialized" << endl;
   }
@@ -142,8 +148,35 @@ void display_fps()
   {
     get_screen_size();
     font::get().resize( screen );
+
+    glPushClientAttrib( GL_CLIENT_ALL_ATTRIB_BITS );
+    glPushAttrib( GL_ALL_ATTRIB_BITS );
+
+    bool blend_enabled = glIsEnabled( GL_BLEND );
+    bool cull_enabled = glIsEnabled( GL_CULL_FACE );
+    bool depth_enabled = glIsEnabled( GL_DEPTH_TEST );
+
+    glEnable( GL_BLEND );
+    glDisable( GL_CULL_FACE );
+    glDisable( GL_DEPTH_TEST );
+
+    font::get().add_to_text( instance, fpstext.c_str() );
+    font::get().render( instance, vec3( 0 ), uvec2( 10 + 1 ) ); //render "outline"
     font::get().add_to_text( instance, fpstext.c_str() );
     font::get().render( instance, vec3( 1 ), uvec2( 10 ) );
+
+    //world of goo fix: they don't maintain the blending
+    if( !blend_enabled )
+      glDisable( GL_BLEND );
+
+    if( cull_enabled )
+      glEnable( GL_CULL_FACE );
+
+    if( depth_enabled )
+      glEnable( GL_DEPTH_TEST );
+
+    glPopAttrib();
+    glPopClientAttrib();
   }
 }
 
